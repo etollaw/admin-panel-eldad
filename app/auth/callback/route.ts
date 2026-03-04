@@ -33,25 +33,6 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${origin}/login?error=oauth_failed`);
   }
 
-  // Check superadmin status after login
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("is_superadmin")
-      .eq("id", user.id)
-      .single();
-
-    if (!profile?.is_superadmin) {
-      await supabase.auth.signOut();
-      return NextResponse.redirect(
-        `${origin}/login?error=unauthorized`
-      );
-    }
-  }
-
+  // Middleware will check superadmin status and redirect if needed
   return NextResponse.redirect(`${origin}/admin`);
 }

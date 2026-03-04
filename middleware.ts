@@ -29,9 +29,9 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Allow access to login, auth, and bootstrap routes
+  // Allow access to login and auth routes
   const { pathname } = request.nextUrl;
-  if (pathname === "/login" || pathname.startsWith("/auth/") || pathname === "/bootstrap") {
+  if (pathname === "/login" || pathname.startsWith("/auth/")) {
     return supabaseResponse;
   }
 

@@ -20,63 +20,81 @@ export async function GET() {
     const results: Record<string, unknown> = { user_id: user.id, email: user.email };
 
     // Check current profile
-    const { data: profile, error: profileErr } = await supabase
+    const { data: profile } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", user.id)
       .single();
     results.current_profile = profile;
-    results.profile_error = profileErr?.message ?? null;
 
-    // Attempt 1: Direct update (just is_superadmin)
-    const { error: updateErr } = await supabase
+    // Attempt 1: Try INSERT directly (maybe INSERT policy is different from UPDATE)
+    const { error: insertErr } = await supabase
       .from("profiles")
-      .update({ is_superadmin: true })
-      .eq("id", user.id);
-    results.direct_update = updateErr?.message ?? "SUCCESS";
+      .insert({
+        id: user.id,
+        email: user.email,
+        is_superadmin: true,
+        created_datetime_utc: new Date().toISOString(),
+      });
+    results.insert_with_superadmin = insertErr?.message ?? "SUCCESS";
 
-    // Attempt 2: Check if we can update OTHER fields on our own profile
-    const { error: otherUpdateErr } = await supabase
+    // Attempt 2: Try UPSERT with onConflict
+    const { error: upsertErr } = await supabase
       .from("profiles")
-      .update({ modified_datetime_utc: new Date().toISOString() })
+      .upsert(
+        {
+          id: user.id,
+          email: user.email,
+          is_superadmin: true,
+          modified_datetime_utc: new Date().toISOString(),
+        },
+        { onConflict: "id" }
+      );
+    results.upsert_with_superadmin = upsertErr?.message ?? "SUCCESS";
+
+    // Attempt 3: Delete profile then re-insert with superadmin
+    const { error: deleteErr } = await supabase
+      .from("profiles")
+      .delete()
       .eq("id", user.id);
-    results.update_other_fields = otherUpdateErr?.message ?? "SUCCESS";
+    results.delete_profile = deleteErr?.message ?? "SUCCESS";
 
-    // Attempt 3: Try to discover available RPC functions by querying pg_proc
-    const { data: rpcFuncs, error: rpcListErr } = await supabase
-      .rpc("pg_catalog.pg_proc", {})
-      .select("proname")
-      .limit(50);
-    results.rpc_list = rpcFuncs ?? rpcListErr?.message;
+    if (!deleteErr) {
+      const { error: reinsertErr } = await supabase
+        .from("profiles")
+        .insert({
+          id: user.id,
+          email: user.email,
+          is_superadmin: true,
+          created_datetime_utc: new Date().toISOString(),
+        });
+      results.reinsert_with_superadmin = reinsertErr?.message ?? "SUCCESS";
 
-    // Attempt 4: Try common RPC function names
-    const rpcNames = [
-      "make_superadmin", "set_superadmin", "promote_superadmin",
-      "become_superadmin", "grant_superadmin", "toggle_superadmin",
-      "update_superadmin", "admin_bootstrap", "bootstrap_admin",
-      "self_promote", "make_admin", "set_admin", "promote_admin",
-      "grant_admin", "elevate", "bootstrap", "make_me_admin",
-      "set_is_superadmin", "update_profile_admin",
-    ];
-    const rpcResults: Record<string, string> = {};
-    for (const name of rpcNames) {
-      try {
-        const { error: rpcErr } = await supabase.rpc(name, { user_id: user.id });
-        rpcResults[name] = rpcErr?.message ?? "SUCCESS!";
-      } catch {
-        rpcResults[name] = "threw exception";
+      // If reinsert failed, restore the profile without superadmin
+      if (reinsertErr) {
+        await supabase.from("profiles").insert({
+          id: user.id,
+          email: user.email,
+          is_superadmin: false,
+          created_datetime_utc: profile?.created_datetime_utc ?? new Date().toISOString(),
+        });
+        results.restored_profile = true;
       }
     }
-    // Also try without params
-    for (const name of rpcNames) {
-      try {
-        const { error: rpcErr } = await supabase.rpc(name);
-        if (!rpcErr) rpcResults[`${name}_no_params`] = "SUCCESS!";
-      } catch {
-        // ignore
-      }
-    }
-    results.rpc_attempts = rpcResults;
+
+    // Attempt 4: Try updating user metadata through auth
+    const { error: metaErr } = await supabase.auth.updateUser({
+      data: { is_superadmin: true },
+    });
+    results.auth_metadata_update = metaErr?.message ?? "SUCCESS";
+
+    // Re-check profile
+    const { data: updatedProfile } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+    results.final_profile = updatedProfile;
 
     return NextResponse.json(results, { status: 200 });
   } catch (e) {

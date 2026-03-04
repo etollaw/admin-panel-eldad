@@ -13,7 +13,7 @@ export async function createImage(formData: FormData) {
   }
 
   const { error } = await supabase.from("images").insert({
-    image_url: imageUrl.trim(),
+    url: imageUrl.trim(),
     created_datetime_utc: new Date().toISOString(),
     modified_datetime_utc: new Date().toISOString(),
   });
@@ -39,7 +39,7 @@ export async function updateImage(formData: FormData) {
   const { error } = await supabase
     .from("images")
     .update({
-      image_url: imageUrl.trim(),
+      url: imageUrl.trim(),
       modified_datetime_utc: new Date().toISOString(),
     })
     .eq("id", id);

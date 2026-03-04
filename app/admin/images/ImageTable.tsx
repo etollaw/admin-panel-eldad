@@ -5,7 +5,7 @@ import { updateImage, deleteImage } from "./actions";
 
 interface Image {
   id: string;
-  image_url: string;
+  url: string;
   created_datetime_utc: string | null;
   modified_datetime_utc: string | null;
 }
@@ -48,7 +48,7 @@ export default function ImageTable({ images }: { images: Image[] }) {
 
 function ImageRow({ image }: { image: Image }) {
   const [editing, setEditing] = useState(false);
-  const [url, setUrl] = useState(image.image_url);
+  const [url, setUrl] = useState(image.url);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -83,7 +83,7 @@ function ImageRow({ image }: { image: Image }) {
     <tr className="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors">
       <td className="px-4 py-3">
         <img
-          src={image.image_url}
+          src={image.url}
           alt=""
           className="w-16 h-16 object-cover rounded-lg border border-gray-700"
         />
@@ -108,7 +108,7 @@ function ImageRow({ image }: { image: Image }) {
               <button
                 onClick={() => {
                   setEditing(false);
-                  setUrl(image.image_url);
+                  setUrl(image.url);
                   setError(null);
                 }}
                 className="text-xs text-gray-400 hover:text-white px-2 py-1 cursor-pointer"
@@ -120,7 +120,7 @@ function ImageRow({ image }: { image: Image }) {
           </div>
         ) : (
           <span className="text-gray-300 text-xs break-all">
-            {image.image_url}
+            {image.url}
           </span>
         )}
       </td>

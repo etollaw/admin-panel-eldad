@@ -27,7 +27,7 @@ export default async function UsersPage() {
             <thead>
               <tr className="border-b border-gray-800 text-left">
                 <th className="px-4 py-3 text-gray-400 font-medium">
-                  Display Name
+                  Name
                 </th>
                 <th className="px-4 py-3 text-gray-400 font-medium">Email</th>
                 <th className="px-4 py-3 text-gray-400 font-medium">
@@ -46,7 +46,7 @@ export default async function UsersPage() {
                   className="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors"
                 >
                   <td className="px-4 py-3 text-white">
-                    {user.display_name || "—"}
+                    {[user.first_name, user.last_name].filter(Boolean).join(" ") || "—"}
                   </td>
                   <td className="px-4 py-3 text-gray-300">
                     {user.email || "—"}

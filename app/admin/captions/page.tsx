@@ -5,7 +5,7 @@ export default async function CaptionsPage() {
 
   const { data: captions, error } = await supabase
     .from("captions")
-    .select("*, images(image_url), profiles(display_name)")
+    .select("*, images(url), profiles(first_name, last_name, email)")
     .order("created_datetime_utc", { ascending: false });
 
   if (error) {
@@ -33,7 +33,7 @@ export default async function CaptionsPage() {
                   Caption
                 </th>
                 <th className="px-4 py-3 text-gray-400 font-medium">Author</th>
-                <th className="px-4 py-3 text-gray-400 font-medium">Score</th>
+                <th className="px-4 py-3 text-gray-400 font-medium">Likes</th>
                 <th className="px-4 py-3 text-gray-400 font-medium">
                   Created
                 </th>
@@ -42,10 +42,10 @@ export default async function CaptionsPage() {
             <tbody>
               {captions?.map((caption) => {
                 const imageData = caption.images as
-                  | { image_url: string }
+                  | { url: string }
                   | null;
                 const profileData = caption.profiles as
-                  | { display_name: string }
+                  | { first_name: string | null; last_name: string | null; email: string | null }
                   | null;
 
                 return (
@@ -54,9 +54,9 @@ export default async function CaptionsPage() {
                     className="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors"
                   >
                     <td className="px-4 py-3">
-                      {imageData?.image_url ? (
+                      {imageData?.url ? (
                         <img
-                          src={imageData.image_url}
+                          src={imageData.url}
                           alt=""
                           className="w-12 h-12 object-cover rounded-lg border border-gray-700"
                         />
@@ -65,14 +65,14 @@ export default async function CaptionsPage() {
                       )}
                     </td>
                     <td className="px-4 py-3 text-gray-300 max-w-md">
-                      <p className="line-clamp-2">{caption.caption_text}</p>
+                      <p className="line-clamp-2">{caption.content}</p>
                     </td>
                     <td className="px-4 py-3 text-gray-400 text-xs">
-                      {profileData?.display_name || "Anonymous"}
+                      {[profileData?.first_name, profileData?.last_name].filter(Boolean).join(" ") || profileData?.email || "Anonymous"}
                     </td>
                     <td className="px-4 py-3">
                       <span className="font-mono font-semibold text-amber-400">
-                        {caption.score ?? 0}
+                        {caption.like_count ?? 0}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-gray-400 text-xs">

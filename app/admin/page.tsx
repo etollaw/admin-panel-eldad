@@ -19,17 +19,17 @@ export default async function AdminDashboard() {
     supabase.from("caption_votes").select("*", { count: "exact", head: true }),
     supabase
       .from("profiles")
-      .select("id, display_name, created_datetime_utc")
+      .select("id, first_name, last_name, email, created_datetime_utc")
       .order("created_datetime_utc", { ascending: false })
       .limit(5),
     supabase
       .from("captions")
-      .select("id, caption_text, score, image_id")
-      .order("score", { ascending: false })
+      .select("id, content, like_count, image_id")
+      .order("like_count", { ascending: false })
       .limit(5),
     supabase
       .from("images")
-      .select("id, image_url, created_datetime_utc")
+      .select("id, url, created_datetime_utc")
       .order("created_datetime_utc", { ascending: false })
       .limit(5),
   ]);
@@ -88,7 +88,7 @@ export default async function AdminDashboard() {
                 className="flex items-center justify-between text-sm"
               >
                 <span className="text-gray-300 truncate">
-                  {user.display_name || "Anonymous"}
+                  {[user.first_name, user.last_name].filter(Boolean).join(" ") || user.email || "Anonymous"}
                 </span>
                 <span className="text-gray-500 text-xs">
                   {user.created_datetime_utc
@@ -102,7 +102,7 @@ export default async function AdminDashboard() {
 
         {/* Top Captions */}
         <div className="bg-gray-900 border border-gray-800 rounded-xl p-6">
-          <h3 className="text-lg font-semibold mb-4">Top Captions by Score</h3>
+          <h3 className="text-lg font-semibold mb-4">Top Captions by Likes</h3>
           <div className="space-y-3">
             {topCaptions.length === 0 && (
               <p className="text-gray-500 text-sm">No captions yet.</p>
@@ -113,10 +113,10 @@ export default async function AdminDashboard() {
                 className="flex items-center justify-between text-sm gap-4"
               >
                 <span className="text-gray-300 truncate flex-1">
-                  {caption.caption_text}
+                  {caption.content}
                 </span>
                 <span className="text-amber-400 font-mono font-semibold shrink-0">
-                  {caption.score ?? 0}
+                  {caption.like_count ?? 0}
                 </span>
               </div>
             ))}
@@ -136,7 +136,7 @@ export default async function AdminDashboard() {
           {recentImages.map((img) => (
             <div key={img.id} className="relative group">
               <img
-                src={img.image_url}
+                src={img.url}
                 alt={`Image ${img.id}`}
                 className="w-full aspect-square object-cover rounded-lg border border-gray-700"
               />

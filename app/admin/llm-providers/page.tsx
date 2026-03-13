@@ -29,7 +29,7 @@ export default async function LlmProvidersPage() {
               required
               className="flex-1 bg-gray-800 border border-gray-700 rounded px-3 py-2 text-sm"
             />
-            <span className="text-gray-500 text-xs font-mono">{row.id.slice(0, 8)}...</span>
+            <span className="text-gray-500 text-xs font-mono">{String(row.id)}</span>
             <button type="submit" className="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded text-sm">Update</button>
             <button formAction={deleteProvider} className="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-sm">Delete</button>
           </form>

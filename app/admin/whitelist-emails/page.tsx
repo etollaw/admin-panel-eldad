@@ -7,7 +7,6 @@ async function createEmail(formData: FormData) {
   const emailAddress = String(formData.get("email_address") ?? "").trim().toLowerCase();
   if (!emailAddress) return;
   await supabase.from("whitelist_email_addresses").insert({
-    id: crypto.randomUUID(),
     created_datetime_utc: new Date().toISOString(),
     modified_datetime_utc: new Date().toISOString(),
     email_address: emailAddress,

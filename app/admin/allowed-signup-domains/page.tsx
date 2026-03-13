@@ -7,7 +7,6 @@ async function createDomain(formData: FormData) {
   const apexDomain = String(formData.get("apex_domain") ?? "").trim().toLowerCase();
   if (!apexDomain) return;
   await supabase.from("allowed_signup_domains").insert({
-    id: crypto.randomUUID(),
     created_datetime_utc: new Date().toISOString(),
     apex_domain: apexDomain,
   });

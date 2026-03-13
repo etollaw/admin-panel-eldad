@@ -12,7 +12,6 @@ async function createModel(formData: FormData) {
   if (!name || !llmProviderId || !providerModelId) return;
 
   await supabase.from("llm_models").insert({
-    id: crypto.randomUUID(),
     created_datetime_utc: new Date().toISOString(),
     name,
     llm_provider_id: llmProviderId,

@@ -16,7 +16,6 @@ async function createTerm(formData: FormData) {
   }
 
   await supabase.from("terms").insert({
-    id: crypto.randomUUID(),
     created_datetime_utc: new Date().toISOString(),
     modified_datetime_utc: new Date().toISOString(),
     term,

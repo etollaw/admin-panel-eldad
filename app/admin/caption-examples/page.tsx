@@ -14,7 +14,6 @@ async function createCaptionExample(formData: FormData) {
   if (!imageDescription || !caption || !explanation || Number.isNaN(priority)) return;
 
   await supabase.from("caption_examples").insert({
-    id: crypto.randomUUID(),
     created_datetime_utc: new Date().toISOString(),
     modified_datetime_utc: new Date().toISOString(),
     image_description: imageDescription,

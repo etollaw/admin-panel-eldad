@@ -1,6 +1,6 @@
 "use client";
 
-import { createImage } from "./actions";
+import { createImage, uploadImageFile } from "./actions";
 import { useState } from "react";
 
 export default function CreateImageForm() {
@@ -12,6 +12,18 @@ export default function CreateImageForm() {
     setLoading(true);
     setError(null);
     const result = await createImage(formData);
+    setLoading(false);
+    if (result.error) {
+      setError(result.error);
+    } else {
+      setOpen(false);
+    }
+  }
+
+  async function handleFileSubmit(formData: FormData) {
+    setLoading(true);
+    setError(null);
+    const result = await uploadImageFile(formData);
     setLoading(false);
     if (result.error) {
       setError(result.error);
@@ -33,8 +45,8 @@ export default function CreateImageForm() {
 
   return (
     <div className="bg-gray-900 border border-gray-800 rounded-xl p-4 mb-6">
-      <h3 className="text-sm font-semibold mb-3">Add New Image</h3>
-      <form action={handleSubmit} className="flex gap-3">
+      <h3 className="text-sm font-semibold mb-3">Add New Image by URL</h3>
+      <form action={handleSubmit} className="flex gap-3 mb-4">
         <input
           type="url"
           name="image_url"
@@ -49,6 +61,27 @@ export default function CreateImageForm() {
         >
           {loading ? "Adding..." : "Add"}
         </button>
+      </form>
+
+      <h3 className="text-sm font-semibold mb-3">Upload New Image File</h3>
+      <form action={handleFileSubmit} className="flex gap-3 mb-2" encType="multipart/form-data">
+        <input
+          type="file"
+          name="image"
+          accept="image/jpeg,image/jpg,image/png,image/webp,image/gif,image/heic"
+          required
+          className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white"
+        />
+        <button
+          type="submit"
+          disabled={loading}
+          className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors cursor-pointer"
+        >
+          {loading ? "Uploading..." : "Upload"}
+        </button>
+      </form>
+
+      <div>
         <button
           type="button"
           onClick={() => {
@@ -59,7 +92,7 @@ export default function CreateImageForm() {
         >
           Cancel
         </button>
-      </form>
+      </div>
       {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
     </div>
   );

@@ -9,6 +9,9 @@ export default async function AdminDashboard() {
     imagesResult,
     captionsResult,
     votesResult,
+    upvotesResult,
+    downvotesResult,
+    voteRowsResult,
     recentUsersResult,
     topCaptionsResult,
     recentImagesResult,
@@ -17,6 +20,15 @@ export default async function AdminDashboard() {
     supabase.from("images").select("*", { count: "exact", head: true }),
     supabase.from("captions").select("*", { count: "exact", head: true }),
     supabase.from("caption_votes").select("*", { count: "exact", head: true }),
+    supabase
+      .from("caption_votes")
+      .select("*", { count: "exact", head: true })
+      .eq("vote_value", 1),
+    supabase
+      .from("caption_votes")
+      .select("*", { count: "exact", head: true })
+      .eq("vote_value", -1),
+    supabase.from("caption_votes").select("caption_id"),
     supabase
       .from("profiles")
       .select("id, first_name, last_name, email, created_datetime_utc")
@@ -38,6 +50,12 @@ export default async function AdminDashboard() {
   const totalImages = imagesResult.count ?? 0;
   const totalCaptions = captionsResult.count ?? 0;
   const totalVotes = votesResult.count ?? 0;
+  const totalUpvotes = upvotesResult.count ?? 0;
+  const totalDownvotes = downvotesResult.count ?? 0;
+  const netVoteScore = totalUpvotes - totalDownvotes;
+  const ratedCaptionCount = new Set((voteRowsResult.data ?? []).map((row) => row.caption_id)).size;
+  const ratedCaptionCoverage =
+    totalCaptions > 0 ? `${Math.round((ratedCaptionCount / totalCaptions) * 100)}%` : "0%";
   const recentUsers = recentUsersResult.data ?? [];
   const topCaptions = topCaptionsResult.data ?? [];
   const recentImages = recentImagesResult.data ?? [];
@@ -57,6 +75,13 @@ export default async function AdminDashboard() {
         <StatCard label="Total Images" value={totalImages} color="green" />
         <StatCard label="Total Captions" value={totalCaptions} color="purple" />
         <StatCard label="Total Votes" value={totalVotes} color="amber" />
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <StatCard label="Upvotes" value={totalUpvotes} color="emerald" />
+        <StatCard label="Downvotes" value={totalDownvotes} color="red" />
+        <StatCard label="Net Vote Score" value={netVoteScore} color="indigo" />
+        <StatCard label="Captions Rated" value={`${ratedCaptionCount} (${ratedCaptionCoverage})`} color="cyan" />
       </div>
 
       {/* Secondary Stats */}
@@ -171,6 +196,10 @@ function StatCard({
     amber: "border-amber-500/30 bg-amber-500/10 text-amber-400",
     teal: "border-teal-500/30 bg-teal-500/10 text-teal-400",
     rose: "border-rose-500/30 bg-rose-500/10 text-rose-400",
+    emerald: "border-emerald-500/30 bg-emerald-500/10 text-emerald-400",
+    red: "border-red-500/30 bg-red-500/10 text-red-400",
+    indigo: "border-indigo-500/30 bg-indigo-500/10 text-indigo-400",
+    cyan: "border-cyan-500/30 bg-cyan-500/10 text-cyan-400",
   };
 
   return (
